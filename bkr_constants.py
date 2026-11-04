@@ -15,6 +15,7 @@ STARTS = 200                                          # Zahl der steilsten Absti
 FW_ITERS = 100                                        # höchstens so viele Frank–Wolfe-Schritte je Lauf der FAQ-Art
 CONVEX_ITERS = 300                                    # Frank–Wolfe-Schritte für die konvexe Relaxation (jeder Schritt liefert eine gültige untere Schranke)
 LAMBDA = 0.6                                          # Zufallsstart: λ · (zufällige Permutationsmatrix) + (1 − λ) · J/n
+TIE_DECIMALS = 8                                      # Stellen (relativ zum größten Betrag), auf die Gradient und Lösung vor der Zuordnung gerundet werden: Gleichstände rechnerunabhängig
 STARTS_SWEEP = 50                                     # Zufallsstarts je Instanz in den Vergleichen n = 6, 8
 STARTS_LARGE = 20                                     # Zufallsstarts je Instanz bei n ≥ 12
 STARTS_LIVE = 50                                      # Zufallsstarts der gewählten Instanz bis n = 9 (darüber 20)

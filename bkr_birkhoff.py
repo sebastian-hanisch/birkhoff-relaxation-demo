@@ -43,9 +43,17 @@ def lap_min(M) -> tuple:
     return Y, cols
 
 
+def tie_quantized(M, decimals: int = C.TIE_DECIMALS) -> np.ndarray:
+    """M, auf `decimals` Stellen relativ zum größten Betrag gerundet: Gleichstände, die nur durch Rechenrauschen (1e-16, je Rechner verschieden) getrennt sind, werden exakte Gleichstände,
+    die die Ungarische Methode dann überall gleich auflöst. Die konvexe Zielfunktion hat kein eindeutiges Minimum, ohne dies hängt die Rundung vom Rechner ab."""
+    M = np.asarray(M, dtype=float)
+    scale = float(np.abs(M).max())
+    return M if scale == 0.0 else np.round(M / scale, decimals)
+
+
 def round_to_perm(X) -> list:
-    """Rundung: die Permutation, die ⟨X, P⟩ maximiert (lineare Zuordnung auf −X)."""
-    return [int(c) for c in lap_min(-np.asarray(X, dtype=float))[1]]
+    """Rundung: die Permutation, die ⟨X, P⟩ maximiert (lineare Zuordnung auf −X; Gleichstände wie in `tie_quantized`)."""
+    return [int(c) for c in lap_min(-tie_quantized(X))[1]]
 
 
 def is_doubly_stochastic(X, tol: float = 1e-9) -> bool:
@@ -136,14 +144,18 @@ def convex_bound(F, D, iters: int = C.CONVEX_ITERS) -> Convex:
     gap, steps = float("inf"), 0
     for _ in range(iters):
         grad = Fp @ X @ Dp
-        Y, _ = lap_min(grad)
-        Dl = Y - X
-        b = float((grad * Dl).sum())
-        lb = max(lb, objective(Fp, Dp, X) + b)
+        Yx, _ = lap_min(grad)                       # exakte Richtung: nur ihr Wert zählt für die zertifizierte Schranke
+        bx = float((grad * (Yx - X)).sum())
+        lb = max(lb, objective(Fp, Dp, X) + bx)
         lowers.append(lb - const)
         rounded.append(K.cost(round_to_perm(X), F, D))
-        gap = max(0.0, -b)
+        gap = max(0.0, -bx)
         if gap < 1e-9:
+            break
+        Y, _ = lap_min(tie_quantized(grad))         # gegangen wird in die rechnerunabhängig aufgelöste Richtung (Gleichstände wie in `tie_quantized`)
+        Dl = Y - X
+        b = float((grad * Dl).sum())
+        if b >= 0.0:                                # die gerundete Richtung ist keine Abstiegsrichtung mehr: Rauschgrenze erreicht
             break
         a = 0.5 * float(((Fp @ Dl @ Dp) * Dl).sum())
         X = X + (1.0 if a <= 1e-12 else min(1.0, -b / (2 * a))) * Dl

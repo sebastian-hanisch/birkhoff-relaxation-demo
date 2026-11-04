@@ -173,3 +173,43 @@ def test_edge_cases():
     assert one.perm == [0] and one.cost == 0
     with pytest.raises(ValueError):
         K.cost([0, 0], F, D)
+
+
+# ----------------------------------------------------------------------------- rechnerunabhängige Gleichstände
+
+def test_tie_quantized_makes_noise_level_ties_exact_and_leaves_zero_alone():
+    M = np.array([[1.0, 1.0 + 1e-13], [2.0, 3.0]])
+    Q = Bk.tie_quantized(M)
+    assert Q[0, 0] == Q[0, 1] and Q[1, 1] > Q[1, 0] > Q[0, 0] and Q.max() == pytest.approx(1.0)
+    assert np.array_equal(Bk.tie_quantized(np.zeros((3, 3))), np.zeros((3, 3)))
+    assert Bk.tie_quantized(np.array([[1.0, 2.0], [3.0, 4.0]]), 1)[0, 0] == 0.2
+
+
+def _noisy_ties(monkeypatch, noise, seed):
+    """Stört die Eingabe jeder gerundeten Zuordnung (Gradient und Lösung) um relatives Rauschen `noise`: der Ersatz für einen anderen Rechner (anderes BLAS, andere Summationsreihenfolge)."""
+    rng = np.random.default_rng(seed)
+    orig = Bk.tie_quantized
+    monkeypatch.setattr(Bk, "tie_quantized", lambda M, decimals=C.TIE_DECIMALS: orig(np.asarray(M, float) + noise * np.abs(M).max() * rng.standard_normal(np.shape(M)), decimals))
+
+
+@pytest.mark.parametrize("family,n,seed", [("netlist", 8, 35), ("uniform", 8, 100000), ("cluster", 8, 100001), ("sparse", 6, 100002)])
+def test_the_convex_run_and_its_rounding_do_not_depend_on_rounding_noise(monkeypatch, family, n, seed):
+    inst = I.make_instance(family, n, seed)
+    base = Bk.convex_bound(inst.F, inst.D)
+    for s in range(3):
+        _noisy_ties(monkeypatch, 1e-13, s)
+        other = Bk.convex_bound(inst.F, inst.D)
+        monkeypatch.undo()
+        assert other.rounded_cost == base.rounded_cost and other.perm == base.perm and other.cq == pytest.approx(base.cq, abs=1e-6) and other.rounded == base.rounded
+
+
+def test_the_tie_digits_change_only_the_rounding_not_the_bound(monkeypatch):
+    inst = I.make_instance("netlist", 8, 35)
+    out = {}
+    for d in (6, 8, 10):
+        monkeypatch.setattr(Bk.tie_quantized, "__defaults__", (d,))
+        cv = Bk.convex_bound(inst.F, inst.D)
+        out[d] = (cv.rounded_cost, cv.cq)
+        monkeypatch.undo()
+    assert [out[d][0] for d in (6, 8, 10)] == [46, 54, 37]
+    assert max(out[d][1] for d in out) - min(out[d][1] for d in out) < 0.05 and all(v[1] <= 31 for v in out.values())
