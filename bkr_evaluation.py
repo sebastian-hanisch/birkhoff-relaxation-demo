@@ -205,7 +205,7 @@ def _refname(v: dict) -> str:
 def verdict_convex(s: Settings, v: dict):
     cv = v["convex"]
     neg = cv.cq < 0
-    tail = (" Sie liegt unter 0 und ist damit schwächer als die triviale Schranke 0: die Konstante ½ s_F s_D n (" + num(cv.constant) + ") ist ein Vielfaches des Optimums, das die Verschiebung der Spektren wieder abziehen muss." if neg else "")
+    tail = (" Sie liegt unter 0 und ist damit schwächer als die triviale Schranke 0: die Konstante ½ s_F s_D n (" + num(cv.constant) + ") ist meist ein Vielfaches des Optimums, das die Verschiebung der Spektren wieder abziehen muss (eine Deutung, keine gemessene Ursache)." if neg else "")
     return ("warning" if neg else "info"), (_head(s, v) + f"Die konvexe Relaxation (Verschiebung s_F = {de(cv.s_f, 2)}, s_D = {de(cv.s_d, 2)}) liefert nach {len(cv.lowers)} Frank–Wolfe-Schritten die gültige untere Schranke **{num(cv.cq)}** (Lücke {'' if v['exact'] else 'höchstens '}{pct(v['gap_cq'], 1)}), "
                                               f"gegen Gilmore–Lawler {num(v['glb'])} (Lücke {pct(v['gap_glb'], 1)}) und die projizierte Schranke {num(v['pb'])}; {_refname(v)} ist {v['ref']}.{tail}")
 

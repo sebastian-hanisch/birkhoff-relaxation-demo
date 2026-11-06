@@ -64,7 +64,7 @@ st.markdown(
     """
 **Was passiert, wenn man die Menge der Anordnungen relaxiert?** Dieselbe Aufgabe wie in Stück 1 bis 5: `n` Bauteile auf `n` Plätze, Kosten gleich der Summe aus **Fluss mal Abstand** über alle Paare. Hier wird nicht die Zielfunktion verändert, sondern die **Menge**: statt einer Permutationsmatrix `X` ist jede
 **doppeltstochastische Matrix** erlaubt (Einträge ≥ 0, jede Zeile und jede Spalte summiert zu 1; die Ecken dieser Menge sind genau die Permutationsmatrizen). Gelöst wird mit **Frank–Wolfe** und der **linearen Zuordnung** (Ungarische Methode) als Richtungsschritt. Zwei Gesichter:
-**konvex** (die Spektren werden so verschoben, dass die Zielfunktion konvex wird: das gibt eine gültige untere Schranke und eine eindeutige Lösung, die gerundet werden muss) und **indefinit** (die Zielfunktion bleibt, wie sie ist; man landet je nach Start in verschiedenen stationären Punkten, in der Art der FAQ-Methode).
+**konvex** (die Spektren werden so verschoben, dass die Zielfunktion konvex wird: das gibt eine gültige untere Schranke und eine Lösung, die nicht eindeutig sein muss und gerundet wird) und **indefinit** (die Zielfunktion bleibt, wie sie ist; man nähert sich je nach Start verschiedenen stationären Punkten, in der Art der FAQ-Methode).
 Die sechs Familien der Flussmatrix sind **eigene, einfache Erfindungen** (aus Stück 2); beide Relaxationen sind **eigene einfache Fassungen**, nicht die Verfahren der Literatur. Stück 6 der Reihe „Anordnen: relaxieren und runden“.
 
 Weiter unten: **fünf Experimente** (**🔬**), **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**.
@@ -155,7 +155,7 @@ else:
     # --- Experiment 2: Lösung -------------------------------------------------------------------------------------------------------------------
 
     st.subheader("🔬 Experiment 2: Die Lösung der konvexen Relaxation und ihre Rundung")
-    st.caption("Links die konvexe Lösung `X` (Bauteil auf Platz): sie ist eindeutig, aber meist gebrochen. Rechts die Anordnung, die die Rundung daraus macht. Weiter unten der Vergleich über feste Instanzen.")
+    st.caption("Links die konvexe Lösung `X` (Bauteil auf Platz): sie ist nicht eindeutig und meist gebrochen. Rechts die Anordnung, die die Rundung daraus macht. Weiter unten der Vergleich über feste Instanzen.")
     s1, s2 = st.columns(2)
     with s1:
         st.plotly_chart(build_x_heatmap(v["inst"], cv.X, "Lösung X der konvexen Relaxation"), width="stretch", key="x_chart")
@@ -264,9 +264,9 @@ st.markdown(
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
 | **Beide Relaxationen sind einfache Eigenfassungen** | Die konvexe Schranke nutzt nur eine Verschiebung der Spektren; die QP-Schranke der Literatur ist stärker. Die FAQ-Art ist nicht das Programm der FAQ-Autoren. Alle Befunde gelten für diese Fassungen. | – |
-| **Die sechs Familien sind erfunden** | Echte Platinen oder QAPLIB-Instanzen haben andere Strukturen; Aussagen wie „bei Cluster-Flüssen ist ein Start selten erfolgreich“ gelten nur für diese Familien. | – |
+| **Die sechs Familien sind erfunden** | Echte Platinen oder QAPLIB-Instanzen haben andere Strukturen; Aussagen wie „bei Cluster-Flüssen mit n = 8 ist ein Start selten erfolgreich“ gelten nur für diese Familien. | – |
 | **Das Optimum ist nur bis n = 9 bekannt** | Ab n = 12 steht die beste von 200 steilsten Abstiegen an seiner Stelle; die Vergleiche mit der FAQ-Art sind dann Vergleiche zweier Heuristiken, kein Beweis. | Stück 8 (Branch and Bound) |
-| **Frank–Wolfe wird nach höchstens 100 Schritten abgebrochen** | Die Lücke wird auf diesen Instanzen kaum je null; der Anteil gefundener Optima ändert sich zwischen 100 und 300 Schritten kaum, aber ein Lauf ist nicht „zu Ende“. | – |
+| **Frank–Wolfe wird nach höchstens 100 Schritten abgebrochen** | Die Lücke wird auf diesen Instanzen kaum je null; der Anteil gefundener Optima ändert sich zwischen 100 und 300 Schritten bei n = 8 nicht und sinkt bei n = 6 leicht, aber ein Lauf ist nicht „zu Ende“. | – |
 | **Ein Start gegen einen Abstieg** | Ein Lauf der FAQ-Art kostet viele Zuordnungen, ein Abstieg Millisekunden; „ein Start ist seltener erfolgreich“ ist kein Vergleich bei gleicher Rechenzeit. | Trajektorien-Metaheuristiken |
 | **Wenige Instanzen** | n = 6: 20 Instanzen je Familie, n = 8 und große Instanzen: 10; Unterschiede von wenigen Prozentpunkten zwischen Familien sind nicht belastbar. | – |
 """
@@ -288,13 +288,13 @@ $\alpha = \min(1, -b/(2a))$ bei $a > 0$, sonst $\alpha = 1$. Die **Frank–Wolfe
 $$g'(P) = \mathrm{cost}(P) + \tfrac12 s_F s_D\, n .$$
 Für konvexes $g'$ liegt jeder Funktionswert über der Tangente: $g'(X) + \min_Y \langle \nabla g'(X), Y - X \rangle \le \min_{\mathcal{B}} g' \le \min_P g'(P)$. Also ist in **jedem** Frank–Wolfe-Schritt
 $$\mathrm{CQ} = g'(X) + b - \tfrac12 s_F s_D\, n \;\le\; \mathrm{opt}$$
-eine gültige untere Schranke. Weil die Konstante $\tfrac12 s_F s_D n$ meist ein Vielfaches des Optimums ist, ist CQ oft sehr grob und bei dünn besetztem Fluss negativ.
+eine gültige untere Schranke. Die Konstante $\tfrac12 s_F s_D n$ ist meist ein Vielfaches des Optimums; dazu passt, dass CQ oft sehr grob und bei dünn besetzten, sternförmigen und schiefen Flüssen oft negativ ist (eine Deutung, keine gemessene Ursache).
 
 **Rundung.** Die Permutation, die $\langle X, P \rangle$ maximiert (lineare Zuordnung auf $-X$); ihre Kosten sind eine obere Schranke.
 
-**Indefinit (FAQ-Art).** $F$ und $D$ haben Eigenwerte beider Vorzeichen, $g$ ist nicht konvex: Frank–Wolfe endet in einem stationären Punkt (meist einer Ecke), das Ergebnis hängt vom Start ab. Start: $J/n$ oder $\lambda P + (1-\lambda) J/n$ mit einer zufälligen Permutationsmatrix $P$ und $\lambda = 0{,}6$.
+**Indefinit (FAQ-Art).** $F$ und $D$ haben Eigenwerte beider Vorzeichen, $g$ ist nicht konvex: Frank–Wolfe nähert sich einem stationären Punkt (nach 100 Schritten haben ihn nur etwa 1 % der Läufe erreicht), das Ergebnis hängt vom Start ab. Start: $J/n$ oder $\lambda P + (1-\lambda) J/n$ mit einer zufälligen Permutationsmatrix $P$ und $\lambda = 0{,}6$.
 
-**Lücke.** $(\mathrm{opt} - B)/\mathrm{opt}$ für eine Schranke $B$; ohne bekanntes Optimum steht die beste gefundene Lösung $U \ge \mathrm{opt}$ an dessen Stelle, und $(U - B)/U \ge (\mathrm{opt} - B)/\mathrm{opt}$ ist eine **obere Grenze** der wahren Lücke.
+**Lücke.** $(\mathrm{opt} - B)/\mathrm{opt}$ für eine Schranke $B$; ohne bekanntes Optimum steht die beste gefundene Lösung $U \ge \mathrm{opt}$ an dessen Stelle, und $(U - B)/U \ge (\mathrm{opt} - B)/\mathrm{opt}$ ist eine **obere Grenze** der wahren Lücke, solange die Schranke nichtnegativ ist.
 
 **Literatur.** J. T. Vogelstein u. a. (FAQ, Fast Approximate Quadratic assignment), M. Zaslavskiy, F. Bach, J.-P. Vert (PATH), K. M. Anstreicher, N. W. Brixius (QP-Schranke): Angaben aus der Fachliteratur übernommen, hier **nicht nachgelesen**; Selbstangaben der Autoren zur Güte werden nicht übernommen.
 Die Verschiebung, die Zerlegung $g'(P) = \mathrm{cost}(P) + \tfrac12 s_F s_D n$, die zertifizierte Schranke und die Schrittweite sind **eigene** Herleitungen und werden durch Tests (Aufzählung, alle Permutationen kleiner Instanzen, `scipy`) geprüft. Die Zahlen dieser Demo sind eigene Rechnungen an eigenen, erfundenen Familien.
