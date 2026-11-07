@@ -1,9 +1,8 @@
 # Doppeltstochastische Relaxation – Streamlit-Demo
 
-<!-- TODO nach dem Deploy: direkt hierher den Live-Link setzen (Leerzeile davor und danach):
-**[→ Demo live ausprobieren](https://sebastianhanisch-birkhoff-relaxation-demo.streamlit.app/)** -->
+**[→ Demo live ausprobieren](https://sebastianhanisch-birkhoff-relaxation-demo.streamlit.app/)**
 
-Stück 6 von 15 der **Konzepte-Reihe „Anordnen: relaxieren und runden“** für die Website „Sebastian Hanisch – Operations Research und Machine Learning“ (die Konzepte-Seite der Reihe gibt es noch nicht). Stück 3, [Die Gilmore–Lawler-Schranke](https://github.com/sebastian-hanisch/gilmore-lawler-demo), und Stück 5, [Linearisierung und Dual Ascent](https://github.com/sebastian-hanisch/linearisierung-schranke-demo), verändern die **Zielfunktion**, um eine Schranke zu bekommen. Dieses Stück macht das Gegenteil und **relaxiert die Menge** (Kante der Reihe: *Kontrast*): Statt einer Anordnung darf jede **doppeltstochastische Matrix** gewählt werden. Es zeigt die beiden Gesichter dieser Relaxation: die **konvexe** als Schranke und die **indefinite** als Näherungsverfahren in der Art von FAQ.
+Stück 6 von 15 der **Konzepte-Reihe „Anordnen: relaxieren und runden“** für die Website „Sebastian Hanisch – Operations Research und Machine Learning“ (die [Konzepte-Seite der Reihe](https://sebastianhanisch.net/konzepte-anordnen.html)). Stück 3, [Die Gilmore–Lawler-Schranke](https://github.com/sebastian-hanisch/gilmore-lawler-demo), und Stück 5, [Linearisierung und Dual Ascent](https://github.com/sebastian-hanisch/linearisierung-schranke-demo), verändern die **Zielfunktion**, um eine Schranke zu bekommen. Dieses Stück macht das Gegenteil und **relaxiert die Menge** (Kante der Reihe: *Kontrast*): Statt einer Anordnung darf jede **doppeltstochastische Matrix** gewählt werden. Es zeigt die beiden Gesichter dieser Relaxation: die **konvexe** als Schranke und die **indefinite** als Näherungsverfahren in der Art von FAQ.
 
 ## Warum dieses Problem
 
